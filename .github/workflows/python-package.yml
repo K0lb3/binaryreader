@@ -91,9 +91,9 @@ jobs:
       - name: Build package
         run: python3 setup.py build
 
-      # Install Local
+      # Install
       - name: Install package
-        run: python3 setup.py install --user
+        run: python3 setup.py install
 
       # Run Tests, have to be in a file with test in name in a folder named tests with functions with test in the name
       - name: Run tests
