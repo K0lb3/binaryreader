@@ -472,7 +472,7 @@ BinaryReader__readLSB(BinaryReaderObject *self, PyObject *args)
                       ((tmp >> 31) && 1) +
                       ((tmp >> 23) && 1) +
                       ((tmp >> 15) && 1) +
-                      ((tmp >> 7) & 1))
+                      ((tmp >> 7) & 1));
         }
     }
     else
@@ -490,7 +490,7 @@ BinaryReader__readLSB(BinaryReaderObject *self, PyObject *args)
                       ((tmp >> 24) && 1) +
                       ((tmp >> 16) && 1) +
                       ((tmp >> 8) && 1) +
-                      (tmp && 1)
+                      (tmp && 1));
         }
     }
 
