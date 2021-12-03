@@ -25,7 +25,7 @@ setup(
             "binaryreader",
             ["binaryreader.c",],
             language="c",
-            extra_compile_args=["-std=c20"], # most compilers already use -03 or -02
+            extra_compile_args=["-std=c11"], # most compilers already use -03 or -02
         )
     ],
 )
