@@ -6,20 +6,31 @@
     int type definitions
 ############################################################################
 */
+
+#ifndef uint8
 typedef unsigned char uint8;
-typedef signed char int8;
+#endif
+#ifndef uint16
 typedef unsigned short uint16;
-typedef signed short int16;
+#endif
+#ifndef uint32
 typedef unsigned int uint32;
-typedef uint32 uint32;
-typedef unsigned int uint;
-typedef signed int int32;
-#ifdef __GNUC__
+#endif
+#ifndef uint64
 typedef unsigned long long uint64;
-typedef long long int64;
-#else
-typedef unsigned __int64 uint64;
-typedef signed __int64 int64;
+#endif
+
+#ifndef int8
+typedef signed char int8;
+#endif
+#ifndef int16
+typedef signed short int16;
+#endif
+#ifndef int32
+typedef signed int int32;
+#endif
+#ifndef int64
+typedef signed long long int64;
 #endif
 
 /*  
