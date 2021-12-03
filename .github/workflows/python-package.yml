@@ -84,16 +84,16 @@ jobs:
       # Installs the dependencies, add yours here
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade setuptools wheel pytest twine
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --upgrade setuptools wheel pytest twine
 
       # Build
       - name: Build package
-        run: python setup.py build
+        run: python3 setup.py build
 
       # Install Local
       - name: Install package
-        run: python setup.py install --user
+        run: python3 setup.py install --user
 
       # Run Tests, have to be in a file with test in name in a folder named tests with functions with test in the name
       - name: Run tests
@@ -101,7 +101,7 @@ jobs:
 
       # Create wheels for deployment
       - name: Build wheels
-        run: python setup.py sdist bdist_wheel --skip-build
+        run: python3 setup.py sdist bdist_wheel --skip-build
 
       # Deploy
       - name: Publish
