@@ -1,4 +1,4 @@
-name: Windows & Mac Build
+name: Test & Push
 
 on: [push, pull_request]
 
@@ -111,7 +111,7 @@ jobs:
 
       # Deploy
       - name: Publish
-        if: success() && runner.os != 'Linux' && github.event_name == 'push'
+        if: success() && github.event_name == 'push'
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}

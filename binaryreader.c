@@ -213,7 +213,7 @@ static PyGetSetDef BinaryReader_getsetters[] = {
      "the position of the cursor within the data", NULL},
     {"size", (getter)BinaryReader_getSize, NULL,
      "size of underlying/passed object", NULL},
-    {"endian", (getter)BinaryReader_getEndian, (setter)BinaryReader_setEndian, "sendianness of the reader (True - little, False - big)", NULL},
+    {"endian", (getter)BinaryReader_getEndian, (setter)BinaryReader_setEndian, "endianness of the reader (True - little, False - big)", NULL},
     {"obj", (getter)BinaryReader_getObj, NULL, "underlying/passed object", NULL},
     {NULL} /* Sentinel */
 };
@@ -647,8 +647,8 @@ static PyMethodDef BinaryReader_methods[] = {
     {"readStringCArray", (PyCFunction)BinaryReader__readStringNullTerminated, METH_VARARGS,
      PyDoc_STR("reads an array of null terminated strings")},
     {"readString", (PyCFunction)BinaryReader__readStringLengthDelimited, METH_VARARGS,
-     PyDoc_STR("reads a string (if not length is passed as arg, read an int as length)")},
-    {"readString", (PyCFunction)BinaryReader__readStringLengthDelimitedArray, METH_VARARGS,
+     PyDoc_STR("reads a string (if length is not passed as arg, read an int as length)")},
+    {"readStringArray", (PyCFunction)BinaryReader__readStringLengthDelimitedArray, METH_VARARGS,
      PyDoc_STR("reads an array of strings")},
     {"readStringAligned", (PyCFunction)BinaryReader__readAlignedString, METH_VARARGS,
      PyDoc_STR("same as readString but aligned to 4 bytes after reading the string")},
