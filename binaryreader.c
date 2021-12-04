@@ -39,7 +39,7 @@ typedef signed long long int64;
 ############################################################################
 */
 // check if the system is little endian
-#define IS_LITTLE_ENDIAN (*(unsigned char *)&(uint16_t){1})
+#define IS_LITTLE_ENDIAN (*(unsigned char *)&(unsigned short){1})
 
 // set swap funcions (source: old version of nodejs/src/node_buffer.cc)
 #if defined(__GNUC__) || defined(__clang__)
