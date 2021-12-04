@@ -446,6 +446,22 @@ BinaryReader__readAlignedStringArray(BinaryReaderObject *self, PyObject *args)
 }
 
 static PyObject *
+BinaryReader__readVarInt(BinaryReaderObject *self, PyObject *unused)
+{
+    int64 value = 0;
+    int shift = 0;
+    uint8 byte;
+    do
+    {
+        BinaryReader_checkReadLength(self, 1);
+        byte = *self->cur++;
+        value |= (byte & 0x7F) << shift;
+        shift += 7;
+    } while (byte & 0x80);
+    return PyLong_FromLongLong(value);
+}
+
+static PyObject *
 BinaryReader__readLSB(BinaryReaderObject *self, PyObject *args)
 {
     // if input is given, use it, otherwise use read all the data
@@ -465,9 +481,9 @@ BinaryReader__readLSB(BinaryReaderObject *self, PyObject *args)
 
     length = length / 8;
 
-    char *data = (char *)PyMem_Malloc(length);
-    char *cur = data;
-    uint64 *raw = (uint64 *)self->cur;
+    unsigned char *data = (char *)PyMem_Malloc(length);
+    unsigned char *cur = data;
+    uint64 *raw = (uint64 *)self->cur;;
     if (self->is_sys_endianess == IS_LITTLE_ENDIAN)
     {
         // little endian, or big endian that has to be swapped
@@ -475,15 +491,16 @@ BinaryReader__readLSB(BinaryReaderObject *self, PyObject *args)
         for (int i = 0; i < length; i++)
         {
             uint64 tmp = *raw++;
-
-            *cur++ = (((tmp >> 63) && 1) +
-                      ((tmp >> 55) && 1) +
-                      ((tmp >> 47) && 1) +
-                      ((tmp >> 39) && 1) +
-                      ((tmp >> 31) && 1) +
-                      ((tmp >> 23) && 1) +
-                      ((tmp >> 15) && 1) +
-                      ((tmp >> 7) & 1));
+            *cur++ = (
+                ((tmp >> 8*0)&1)<<7 | 
+                ((tmp >> 8*1)&1)<<6 | 
+                ((tmp >> 8*2)&1)<<5 | 
+                ((tmp >> 8*3)&1)<<4 | 
+                ((tmp >> 8*4)&1)<<3 | 
+                ((tmp >> 8*5)&1)<<2 | 
+                ((tmp >> 8*6)&1)<<1 | 
+                ((tmp >> 8*7)&1)<<0
+            );
         }
     }
     else
@@ -493,21 +510,21 @@ BinaryReader__readLSB(BinaryReaderObject *self, PyObject *args)
         for (int i = 0; i < length; i++)
         {
             uint64 tmp = *raw++;
-
-            *cur++ = (((tmp >> 56) && 1) +
-                      ((tmp >> 48) && 1) +
-                      ((tmp >> 40) && 1) +
-                      ((tmp >> 32) && 1) +
-                      ((tmp >> 24) && 1) +
-                      ((tmp >> 16) && 1) +
-                      ((tmp >> 8) && 1) +
-                      (tmp && 1));
+            *cur++ = (
+                ((tmp >> 8*7)&1)<<7 | 
+                ((tmp >> 8*6)&1)<<6 | 
+                ((tmp >> 8*5)&1)<<5 | 
+                ((tmp >> 8*4)&1)<<4 | 
+                ((tmp >> 8*3)&1)<<3 | 
+                ((tmp >> 8*2)&1)<<2 | 
+                ((tmp >> 8*1)&1)<<1 | 
+                ((tmp >> 8*0)&1)<<0
+            );
         }
     }
-
     self->cur += length * 8;
 
-    PyObject *pyarray = PyByteArray_FromStringAndSize(data, length / 8);
+    PyObject *pyarray = Py_BuildValue("y#", data, length);
     PyMem_Free(data);
     return pyarray;
 }
@@ -561,14 +578,14 @@ BinaryReader__readLSB(BinaryReaderObject *self, PyObject *args)
     MAKE_ARRAY_READER(TYPE, TYPE_SIZE_BYTE, TYPE_SIZE_BIT, PYTHON_FUNC, PYTHON_FUNC_TYPE)
 
 /* generate functions via macro */
-MAKE_READER_FUNCS(int16, 2, 16, PyLong_FromLong, int32)
-MAKE_READER_FUNCS(uint16, 2, 16, PyLong_FromUnsignedLong, uint32)
-MAKE_READER_FUNCS(int32, 4, 32, PyLong_FromLong, int32)
-MAKE_READER_FUNCS(uint32, 4, 32, PyLong_FromUnsignedLong, uint32)
-MAKE_READER_FUNCS(int64, 8, 64, PyLong_FromLongLong, int64)
-MAKE_READER_FUNCS(uint64, 8, 64, PyLong_FromUnsignedLongLong, uint64)
-MAKE_READER_FUNCS(float, 4, 32, PyFloat_FromDouble, double)
-MAKE_READER_FUNCS(double, 8, 64, PyFloat_FromDouble, double)
+MAKE_READER_FUNCS(int16, 2, 16, PyLong_FromLong, int32);
+MAKE_READER_FUNCS(uint16, 2, 16, PyLong_FromUnsignedLong, uint32);
+MAKE_READER_FUNCS(int32, 4, 32, PyLong_FromLong, int32);
+MAKE_READER_FUNCS(uint32, 4, 32, PyLong_FromUnsignedLong, uint32);
+MAKE_READER_FUNCS(int64, 8, 64, PyLong_FromLongLong, int64);
+MAKE_READER_FUNCS(uint64, 8, 64, PyLong_FromUnsignedLongLong, uint64);
+MAKE_READER_FUNCS(float, 4, 32, PyFloat_FromDouble, double);
+MAKE_READER_FUNCS(double, 8, 64, PyFloat_FromDouble, double);
 
 /*  
 ############################################################################
@@ -639,6 +656,8 @@ static PyMethodDef BinaryReader_methods[] = {
      PyDoc_STR("reads an array of aligned strings")},
     {"align", (PyCFunction)BinaryReader__align, METH_VARARGS,
      PyDoc_STR("aligns the cursor to the given input")},
+    {"readVarInt", (PyCFunction)BinaryReader__readVarInt, METH_NOARGS,
+     PyDoc_STR("reads a varint")},
     {"readLSB", (PyCFunction)BinaryReader__readLSB, METH_VARARGS,
      PyDoc_STR("reads the lsb data of the given size (in bytes to read -> output length is 1/8 of that)")},
     {NULL},

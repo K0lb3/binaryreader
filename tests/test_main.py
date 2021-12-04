@@ -91,6 +91,17 @@ def test_string_aligned():
     assert br.readUInt8() == 1
 
 
+def test_lsb():
+    value = b"lsb"
+    data = bytearray(24)
+    for j, x in enumerate(value):
+        for i in range(8):
+            data[j * 8 + i] = (x & (1 << i)) >> i
+    br = BinaryReader(data, False)
+    br_value = br.readLSB(len(value) * 8)
+    assert br_value == value
+
+
 def run_tests():
     print("Running tests")
     for key, value in list(globals().items()):
