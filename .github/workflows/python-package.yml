@@ -12,6 +12,10 @@ jobs:
         compiler: ['gcc']
         architecture: ['x86', 'x64']
 
+        exclude:
+          - os: macos-latest
+            python-version: 3.6
+
     timeout-minutes: 30
 
     runs-on: ${{ matrix.os }}
