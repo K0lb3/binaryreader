@@ -285,6 +285,7 @@ BinaryReader__align(BinaryReaderObject *self, PyObject *args)
     {
         return NULL;
     }
+    BinaryReader__alignC(self, size);
     return BinaryReader_getPosition(self, NULL);
 }
 

@@ -7,7 +7,7 @@ setup(
     name="binaryreader",
     description="a c-extension that implements a binary reader on top of bytes and bytearrays",
     author="K0lb3",
-    version="0.1.2",
+    version="0.1.4",
     keywords=["python", "cpython", "c-api", "binary", "parsing"],
     classifiers=[
         "License :: OSI Approved :: MIT License",

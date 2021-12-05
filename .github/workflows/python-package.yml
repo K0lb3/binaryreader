@@ -1,62 +1,22 @@
-name: Test & Push
+name: Windows & Mac Build
 
 on: [push, pull_request]
 
 jobs:
-  # Build the wheels for Linux, Windows and macOS for Python 3.6 and newer
-  build_wheels:
-    name: Build wheel for cp${{ matrix.python }}-${{ matrix.platform_id }}-${{ matrix.manylinux_image }}
-    runs-on: ${{ matrix.os }}
-    #needs: check_build_trigger
-    #if: needs.check_build_trigger.outputs.build
-
+  deploy:
     strategy:
-      # Ensure that a wheel builder finishes even if another fails
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
-        python: [36, 37, 38, 39, 310]
-        bitness: [32, 64]
-        manylinux_image: [manylinux1, manylinux2010, manylinux_x_y]
-        include:
-          # Run 32 and 64 bit version in parallel for Linux and Windows
-          - os: windows-latest
-            bitness: 64
-            platform_id: win_amd64
-          - os: windows-latest
-            bitness: 32
-            platform_id: win32
-          - os: ubuntu-latest
-            bitness: 64
-            platform_id: manylinux_x86_64
-          - os: ubuntu-latest
-            bitness: 32
-            platform_id: manylinux_i686
-          - os: macos-latest
-            bitness: 64
-            platform_id: macosx_x86_64
-          
-          - os: ubuntu-latest
-            bitness: 64
-            platform_id: manylinux_aarch64
-          - os: ubuntu-latest
-            bitness: 64
-            platform_id: manylinux_ppc64le
+        os: ['macOS-latest', 'windows-latest']
+        python-version: ['3.10', '3.9', '3.8', '3.7', '3.6']
+        compiler: ['gcc']
+        architecture: ['x86', 'x64']
 
-        exclude:
-          - os: macos-latest
-            bitness: 32
-          # Remove manylinux1 from the windows and osx build matrix since
-          # manylinux_image is not used for these platforms
-          - os: windows-latest
-            manylinux_image: manylinux1
-          - os: macos-latest
-            manylinux_image: manylinux1
-          - os: macos-latest
-            manylinux_image: manylinux2010
-          - os: macos-latest
-            manylinux_image: manylinux_x_y
-    
+    timeout-minutes: 30
+
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }} ${{ matrix.architecture }} - ${{ matrix.python-version }}
+
     steps:
       - uses: actions/checkout@v2
 
@@ -84,22 +44,16 @@ jobs:
       # Installs the dependencies, add yours here
       - name: Install dependencies
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install --upgrade setuptools wheel pytest twine
+          python -m pip install --upgrade pip
+          pip install --upgrade setuptools wheel pytest twine
 
       # Build
       - name: Build package
-        run: python3 setup.py build
+        run: python setup.py build
 
       # Install Local
       - name: Install package
-        if: runner.os != 'macOS'
-        run: python3 setup.py install --user
-      
-      # Install Local - macOS always being the special rainbow
-      - name: Install package
-        if: runner.os == 'macOS'
-        run: python3 setup.py install
+        run: python setup.py install --user
 
       # Run Tests, have to be in a file with test in name in a folder named tests with functions with test in the name
       - name: Run tests
@@ -107,13 +61,62 @@ jobs:
 
       # Create wheels for deployment
       - name: Build wheels
-        run: python3 setup.py sdist bdist_wheel --skip-build
+        run: python setup.py sdist bdist_wheel --skip-build
 
       # Deploy
       - name: Publish
-        if: success() && github.event_name == 'push'
+        if: success() && runner.os != 'Linux' && github.event_name == 'push'
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
           twine upload dist/* --skip-existing
+
+  manylinux:
+    if: success() && github.event_name == 'push'
+    needs: [deploy]
+
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+        compiler: ['gcc']
+
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade setuptools wheel pytest twine pillow
+
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+
+      - name: Build wheels
+        uses: joerick/cibuildwheel@v2.3.0
+        env:
+          CIBW_ARCHS_LINUX: auto aarch64
+          CIBW_BUILD: |
+            cp36-manylinux_x86_64 cp36-manylinux_i686 cp36-manylinux_aarch64 
+            cp37-manylinux_x86_64 cp37-manylinux_i686 cp37-manylinux_aarch64 
+            cp38-manylinux_x86_64 cp38-manylinux_i686 cp38-manylinux_aarch64 
+            cp39-manylinux_x86_64 cp39-manylinux_i686 cp39-manylinux_aarch64 
+            cp310-manylinux_x86_64 cp310-manylinux_i686 cp310-manylinux_aarch64
+      
+      - name: Publish
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          twine upload dist/* --skip-existing
+          twine upload ./wheelhouse/*.whl --skip-existing
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl

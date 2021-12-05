@@ -18,21 +18,26 @@ text = reader.readStringC()
 
 TODO
 
-## Properties
 
-- ``endian: bool``\[get,set\] - endianness of the reader (True - little, False - big)
-- ``position: int``\[get,set\] - position of the cursor within the data
-- ``size: int``\[get\] - size of underlying/passed object
-- ``obj: bytes|bytearray``\[get\] - underlying/passed object
-
-## Functions
+## Documentation
 
 ### Notes:
 - kwargs won't be accepted, only args are useable
 - all readArray functions accept a langth as optional argument
 - bytes can be read by using readUInt8Array
 
+
+### Init
 - ``BinaryReader(data: bytes|bytearray, is_little_endian: bool)``
+
+### Properties
+
+- ``.endian: bool``\[get,set\] - endianness of the reader (True - little, False - big)
+- ``.position: int``\[get,set\] - position of the cursor within the data
+- ``.size: int``\[get\] - size of underlying/passed object
+- ``.obj: bytes|bytearray``\[get\] - underlying/passed object
+
+### Functions
 - ``.readBool(): bool`` - reads a bool
 - ``.readInt8(): int`` - reads an int8
 - ``.readUInt8(): int`` - reads an uint8
