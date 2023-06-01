@@ -7,8 +7,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['macOS-latest', 'windows-latest']
-        python-version: ['3.10', '3.9', '3.8', '3.7', '3.6']
+        os: ['windows-latest']
+        python-version: ['3.11', '3.10']
         compiler: ['gcc']
         architecture: ['x86', 'x64']
         
