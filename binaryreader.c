@@ -1,6 +1,10 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
+#ifndef _PyFloat_Pack2
+#include <floatobject.h>
+#define _PyFloat_Pack2 PyFloat_Pack2
+#endif
 /*  
 ############################################################################
     int type definitions
