@@ -1,6 +1,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
-
+#include <floatobject.h>
 /*  
 ############################################################################
     int type definitions
